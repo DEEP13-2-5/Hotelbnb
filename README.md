@@ -30,7 +30,7 @@ Ensure you have the following installed:
 ### Steps
 1. Clone the repository:
    ```bash
-   git clone https://github.com/dangerevil13/Hotelbnb.git
+   git clone https://github.com/DEEP13-2-5/Hotelbnb.git
    ```
 2. Navigate to the project directory:
    ```bash
