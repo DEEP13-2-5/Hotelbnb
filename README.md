@@ -3,7 +3,8 @@
 Hotelbnb is a full-stack web application inspired by Airbnb, designed to facilitate the listing, discovery, and booking of accommodations. The platform allows users to create, manage, and explore various accommodations worldwide.
 
 ## Live Demo
-[Click here to visit the deployed version]:-https://hotelbnb-nj6a.onrender.com/listings
+Here are the demo of the project
+https://hotelbnb-nj6a.onrender.com/listings
 
 
 ## Features
