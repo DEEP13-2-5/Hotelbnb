@@ -1,8 +1,8 @@
 const Listing = require("../models/listing.js");
 const { listingSchema } = require("../schema");
 const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
-const mapToken = process.env.MAP_TOKEN;
-const geocodingClient = mbxGeocoding({ accessToken: mapToken });
+const mapToken = process.env.MAP_TOKEN || process.env.MAPBOX_TOKEN;
+const geocodingClient = mapToken ? mbxGeocoding({ accessToken: mapToken }) : null;
 
 // Render all listings
 module.exports.index = async (req, res) => {
@@ -80,15 +80,25 @@ module.exports.createListing = async (req, res) => {
             return res.redirect('back');
         }
 
-        // Geocode the location using Mapbox API
-        let response = await geocodingClient.forwardGeocode({
-            query: req.body.listing.location,
-            limit: 1,
-        }).send();
+        let geometry = {
+            type: "Point",
+            coordinates: [77.209, 28.6139],
+        };
 
-        if (!response.body.features.length) {
-            req.flash("error", "Location not found");
-            return res.redirect('back');
+        if (geocodingClient) {
+            let response = await geocodingClient.forwardGeocode({
+                query: req.body.listing.location,
+                limit: 1,
+            }).send();
+
+            if (response.body.features.length) {
+                geometry = response.body.features[0].geometry;
+            } else {
+                req.flash("error", "Location not found");
+                return res.redirect('back');
+            }
+        } else {
+            req.flash("error", "Map token missing. Listing saved with default map location.");
         }
 
         // Check for file upload and categories
@@ -101,7 +111,7 @@ module.exports.createListing = async (req, res) => {
         const newListing = new Listing(req.body.listing);
         newListing.owner = req.user._id;
         newListing.image = { url, filename };
-        newListing.geometry = response.body.features[0].geometry;
+        newListing.geometry = geometry;
 
         await newListing.save();
         req.flash("success", "New listing Created");
@@ -143,10 +153,13 @@ module.exports.destroyListings = async (req, res) => {
     res.redirect("/listings");
 };
 module.exports.catagory = async (req, res) => {
-    let cat = req.params;
-    console.log(cat);
-  
-    let allListings = await Listing.find(cat);
+        const normalizedCategory = req.params.category.replace(/-/g, " ");
+        let allListings = await Listing.find({
+            $or: [
+                { category: req.params.category },
+                { category: normalizedCategory },
+            ],
+        });
     allListings.forEach((category) => {
       category.formattedPrice = category.price.toLocaleString("en-IN", {
         style: "currency",

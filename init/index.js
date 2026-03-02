@@ -18,10 +18,37 @@ async function main() {
 }
 
 const initDB = async () => {
+  const defaultCategories = [
+    "Trending",
+    "Rooms",
+    "Iconic Cities",
+    "Mountains",
+    "Castles",
+    "Amazing-Pools",
+    "Camping",
+    "Farms",
+    "Beach",
+    "Others",
+  ];
+
   await Listing.deleteMany({});
-  initData.data = initData.data.map((obj) => ({ ...obj, owner:'66c88b9e2054e2e32ce548e0'}))
+  initData.data = initData.data.map((obj, index) => ({
+    ...obj,
+    owner: "66c88b9e2054e2e32ce548e0",
+    category: obj.category || defaultCategories[index % defaultCategories.length],
+    geometry: obj.geometry || {
+      type: "Point",
+      coordinates: [77.209, 28.6139],
+    },
+  }));
   await Listing.insertMany(initData.data);
   console.log("data was initialized");
 };
 
-initDB();
+initDB()
+  .catch((err) => {
+    console.log(err);
+  })
+  .finally(() => {
+    mongoose.connection.close();
+  });
