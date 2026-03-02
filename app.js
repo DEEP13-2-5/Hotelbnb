@@ -19,15 +19,7 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
-
-main()
-  .then(() => {
-    console.log("connected to DB");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+const MONGO_URL = process.env.DATABASE_URL || "mongodb://127.0.0.1:27017/wanderlust";
 
 async function main() {
   await mongoose.connect(MONGO_URL);
@@ -117,4 +109,11 @@ function startServer(port) {
   });
 }
 
-startServer(PORT);
+main()
+  .then(() => {
+    console.log("connected to DB");
+    startServer(PORT);
+  })
+  .catch((err) => {
+    console.log("DB connection failed:", err.message);
+  });
